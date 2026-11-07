@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "chess-clock"
+version = "0.1.0"
+description = "A custom chess clock with a Tkinter UI for a Raspberry Pi and 800x480 TFT screen."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = ["Pillow>=10", "ttkthemes>=3.2.2,<4"]
+
+[project.scripts]
+chess-clock = "chess_clock.ui_tk:main"
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+chess_clock = ["assets/images/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,48 @@
+# Local Python environments
+.venv/
+venv/
+env/
+
+# Python bytecode and packaging output
+__pycache__/
+*.py[cod]
+*.egg-info/
+/.eggs/
+/build/
+/dist/
+
+# Test, lint and coverage output
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# Local secrets and credentials; keep sanitized environment examples
+.env
+.env.*
+!.env.example
+/.aws/
+
+# Local Codex state
+/.codex/
+
+# Share portable VS Code project configuration only
+/.vscode/*
+!/.vscode/settings.json
+!/.vscode/extensions.json
+!/.vscode/launch.json
+!/.vscode/tasks.json
+.idea/
+
+# Editor, OS and runtime clutter
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+*.log
