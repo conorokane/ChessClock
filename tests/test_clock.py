@@ -230,3 +230,135 @@ def test_invalid_settings_do_not_mutate_clock(timer, minutes, increment):
 def test_invalid_increment(increment):
     with pytest.raises(ValueError):
         ChessClock(increment=increment)
+
+
+@pytest.mark.parametrize('white_side', [0, 1])
+def test_turn_number_increases_only_when_play_returns_to_white(timer, white_side):
+    clock, time = timer
+    clock.press_rocker(1 - white_side)
+    assert clock.turn_number == 1
+    clock.start()
+    clock.press_rocker(1 - white_side)  # Inactive press is ignored.
+    assert clock.turn_number == 1
+    clock.press_rocker(white_side)
+    assert clock.turn_number == 1  # Black's first turn.
+    clock.pause()
+    clock.press_rocker(1 - white_side)
+    clock.start()
+    assert clock.turn_number == 1
+    clock.press_rocker(1 - white_side)
+    assert clock.turn_number == 2
+    clock.press_rocker(white_side)
+    clock.press_rocker(1 - white_side)
+    assert clock.turn_number == 3
+    clock.reset()
+    assert clock.turn_number == 1
+
+
+def test_timeout_does_not_start_another_turn(timer):
+    clock, time = timer
+    clock.start()
+    clock.press_rocker(0)
+    time[0] = 301
+    clock.press_rocker(1)
+    assert clock.expired == 1
+    assert clock.turn_number == 1
+
+
+@pytest.mark.parametrize('white_side', [0, 1])
+def test_move_statistics_track_each_player_and_ignore_increments(timer, white_side):
+    clock, time = timer
+    clock.configure(5, 10)
+    clock.press_rocker(1 - white_side)
+    clock.start()
+    time[0] = 2
+    clock.press_rocker(white_side)
+    time[0] = 5
+    clock.press_rocker(1 - white_side)
+    time[0] = 9
+    clock.press_rocker(white_side)
+    assert clock.move_statistics(white_side) == {'average': 3, 'longest': 4, 'shortest': 2}
+    assert clock.move_statistics(1 - white_side) == {'average': 3, 'longest': 3, 'shortest': 3}
+    clock.reset()
+    assert all(value is None for value in clock.move_statistics(0).values())
+    assert all(value is None for value in clock.move_statistics(1).values())
+
+
+def test_move_duration_survives_pause_and_ignores_invalid_presses(timer):
+    clock, time = timer
+    clock.start()
+    time[0] = 1
+    clock.press_rocker(1)
+    time[0] = 2
+    clock.pause()
+    assert clock.move_times == [[], []]
+    time[0] = 100
+    clock.press_rocker(0)
+    clock.start()
+    time[0] = 103
+    clock.press_rocker(0)
+    assert clock.move_times == [[5], []]
+
+
+def test_timeout_excludes_unfinished_move_from_statistics(timer):
+    clock, time = timer
+    clock.start()
+    time[0] = 2
+    clock.switch()
+    time[0] = 5
+    clock.switch()
+    time[0] = 400
+    clock.switch()
+    assert clock.expired == 0
+    assert clock.move_times == [[2], [3]]
+
+
+@pytest.mark.parametrize('seconds', [30, 45])
+def test_subminute_settings_are_used_for_play_and_reset(timer, seconds):
+    clock, time = timer
+    clock.configure_seconds(seconds, 2)
+    clock.start()
+    time[0] = 3
+    clock.switch()
+    assert clock.remaining == [seconds - 1, seconds]
+    clock.reset()
+    assert clock.initial_seconds == seconds
+    assert clock.remaining == [seconds, seconds]
+    assert clock.increment == 2
+
+
+@pytest.mark.parametrize('loser', [0, 1])
+def test_timeout_credits_opponent_exactly_once_and_reset_keeps_score(timer, loser):
+    clock, time = timer
+    clock.press_rocker(1 - loser)
+    clock.start()
+    time[0] = 301
+    clock.update()
+    for _ in range(3):
+        clock.update()
+        clock.start()
+        clock.press_rocker(loser)
+    assert clock.wins[1 - loser] == 1 and clock.wins[loser] == 0
+    assert not clock.declare_winner(loser)
+    clock.reset()
+    clock.press_rocker(loser)  # Changing colours does not move the score.
+    assert clock.wins[1 - loser] == 1 and clock.wins[loser] == 0
+    clock.reset_win_counts()
+    assert clock.wins == [0, 0]
+
+
+@pytest.mark.parametrize('winner', [0, 1])
+@pytest.mark.parametrize('paused', [False, True])
+def test_declared_win_requires_started_game_and_resets_once(timer, winner, paused):
+    clock, time = timer
+    assert not clock.declare_winner(winner)
+    clock.configure(10, 5)
+    clock.start()
+    if paused:
+        clock.pause()
+    assert clock.declare_winner(winner)
+    assert clock.wins[winner] == 1
+    assert clock.remaining == [600, 600] and clock.increment == 5
+    assert not clock.started
+    assert not clock.declare_winner(winner)
+    assert clock.wins[winner] == 1
