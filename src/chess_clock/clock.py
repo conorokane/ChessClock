@@ -85,6 +85,10 @@ class ChessClock:
 
 
 def format_time(seconds: float) -> str:
-    """Round up so a positive fraction of the final second still shows 00:01."""
-    minutes, seconds = divmod(math.ceil(max(0, seconds)), 60)
-    return f"{minutes:02d}:{seconds:02d}"
+    """Round up, showing hundredths only when less than ten seconds remain."""
+    seconds = max(0, seconds)
+    if seconds < 10:
+        whole_seconds, hundredths = divmod(math.ceil(seconds * 100), 100)
+        return f"0:{whole_seconds:02d}.{hundredths:02d}"
+    minutes, whole_seconds = divmod(math.ceil(seconds), 60)
+    return f"{minutes}:{whole_seconds:02d}"

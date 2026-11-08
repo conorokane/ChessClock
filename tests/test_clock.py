@@ -83,8 +83,13 @@ def test_reset_restores_both_timers_and_white_to_move(timer):
     assert not clock.running
 
 
-@pytest.mark.parametrize('seconds, expected', [(300, '05:00'), (59.1, '01:00'),
-                                              (0.1, '00:01'), (0, '00:00')])
+@pytest.mark.parametrize('seconds, expected', [
+    (300, '5:00'), (59.1, '1:00'), (59.99, '1:00'),
+    (10.01, '0:11'), (10, '0:10'), (9.99, '0:09.99'),
+    (9.999, '0:10.00'), (1.234, '0:01.24'),
+    (0.1, '0:00.10'), (0.01, '0:00.01'), (0.001, '0:00.01'),
+    (0, '0:00.00'), (-1, '0:00.00'), (10800, '180:00'),
+])
 def test_time_format(seconds, expected):
     assert format_time(seconds) == expected
 

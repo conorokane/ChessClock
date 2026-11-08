@@ -45,8 +45,8 @@ future Pi-specific configuration.
 .venv/bin/python -m chess_clock.ui_tk
 ```
 
-The UI uses `tkinter.ttk` widgets with `ttkthemes`, defaults to `arc`, and
-provides a dropdown to switch themes live. The window opens with an 800 × 480
+The UI uses `tkinter.ttk` widgets with `ttkthemes` and defaults to `black`.
+Use `--theme` to override the theme at launch. The window opens with an 800 × 480
 client area matching the target screen resolution. The same Tkinter UI will
 run on the Pi's graphical desktop. See the
 [ttkthemes documentation](https://ttkthemes.readthedocs.io/en/latest/example.html).
@@ -65,8 +65,8 @@ run on the Pi's graphical desktop. See the
   side pressed last becomes Black, and the opposite side becomes White.
   The left/right timer labels update immediately. White always moves first.
 - Touch **Start** to begin, **Pause** to stop both clocks, or **Resume** to continue.
-- Touch **Left player** or **Right player** to emulate that side of the rocker.
-  Keyboard equivalents are **Left arrow** and **Right arrow**, regardless of color.
+- Use **Left arrow** and **Right arrow** to emulate each side of the rocker,
+  regardless of color. The on-screen player testing buttons are hidden.
   During play, the active player presses their side after moving to start the
   opponent's clock. The increment is added to the player who just moved.
   Inactive-player presses are ignored, and increments are not awarded during
@@ -89,6 +89,10 @@ schedule. Physical GPIO rocker wiring is not implemented yet.
 ```bash
 .venv/bin/python -m pytest
 ```
+
+## Running
+From the project folder run:
+.venv/bin/chess-clock
 
 Timing tests use a controlled clock without sleeping or requiring a display.
 They cover shared settings, increments, switching, rocker input, pause/resume,
